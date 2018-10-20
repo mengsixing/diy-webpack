@@ -1,0 +1,31 @@
+{
+  "name": "diy-webpack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node diy-webpack.js | js-beautify >> output.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yhlben/diy-webpack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yhlben/diy-webpack/issues"
+  },
+  "homepage": "https://github.com/yhlben/diy-webpack#readme",
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/highlight": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-traverse": "^6.26.0",
+    "babylon": "^6.18.0",
+    "js-beautify": "^1.8.8"
+  }
+}
