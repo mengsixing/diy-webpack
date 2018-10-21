@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-const babylon = require("babylon");
-const traverse = require("babel-traverse").default;
-const babel = require("babel-core");
+const babylon = require("@babel/parser");
+const traverse = require("@babel/traverse").default;
+const babel = require("@babel/core");
 
 let ID = 0;
 
@@ -30,8 +30,8 @@ function craeteAsset(filename) {
   const id = ID++;
 
   // 转换为浏览器可运行的代码
-  const { code } = babel.transformFromAst(ast, null, {
-    presets: ["env"]
+  const { code } = babel.transformFromAstSync(ast, null, {
+    presets: ["@babel/preset-env"]
   });
 
   return {
@@ -74,6 +74,7 @@ function createGraph(entry) {
 function bundle(graph) {
   let modules = "";
 
+  // 把每个模块中的代码放在一个function作用域内
   graph.forEach(mod => {
     modules += `${mod.id}:[
       function (require, module, exports){
@@ -83,6 +84,7 @@ function bundle(graph) {
     ],`;
   });
 
+  // require, module, exports 不能直接在浏览器中使用，这里模拟了模块加载，执行，导出操作。
   const result = `
     (function(modules){
       // 创建一个require()函数: 它接受一个 模块ID 并在我们之前构建的模块对象查找它.

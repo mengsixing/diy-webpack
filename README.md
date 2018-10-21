@@ -1,6 +1,16 @@
 # diy-webpack
 
-手动写一个 webpack 解析器。
+手写一个 webpack 解析器。
+
+## Get Startd
+
+```js
+git clone https://github.com/yhlben/diy-webpack.git
+
+npm run build
+```
+
+在生成的 output.js 中查看效果。
 
 ## craeteAsset
 
@@ -10,15 +20,15 @@
 
 3、使用 babel-traverse 对 ast 进行遍历，将入口文件的依赖保存起来。
 
-4、使用 babel.transformFromAst 将 ast 转换成可执行的 js 代码。
+4、使用 babel.transformFromAstSync 将 ast 转换成可执行的 js 代码。
 
-5、返回经过处理后的一个模块，包含：模块 id，模块 filename，依赖项 dependencies，code 等信息。
+5、返回一个模块，包含：模块 id，模块 filename，依赖项 dependencies，code 信息。
 
 ## createGraph
 
-1、传入入口文件路径，处理入口模块
+1、接收入口文件路径，处理入口模块，生成编译好的模块。
 
-2、新建一个数组，先加入入口模块，然后循环把入口模块所依赖的模块都加入到数组中。
+2、新建一个数组，把入口文件的生成好的模块加入数组中，然后把入口模块所依赖的模块递归加入到数组中。
 
 3、生成包含所有模块的数组，并返回。
 
