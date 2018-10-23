@@ -7,7 +7,7 @@ const babel = require("@babel/core");
 let ID = 0;
 
 // 读取内容并提取它的依赖关系
-function craeteAsset(filename) {
+function createAsset(filename) {
   // 以字符串的形式读取文件
   const content = fs.readFileSync(filename, "utf-8");
 
@@ -44,7 +44,7 @@ function craeteAsset(filename) {
 
 // 从入口开始，分析所有依赖项，形成依赖图，采用深度优先遍历
 function createGraph(entry) {
-  const mainAsset = craeteAsset(entry);
+  const mainAsset = createAsset(entry);
 
   // 定义一个保存依赖项的数组
   const queue = [mainAsset];
@@ -58,7 +58,7 @@ function createGraph(entry) {
     asset.dependencies.forEach(relativePath => {
       const absolutePath = path.join(dirname, relativePath);
 
-      const child = craeteAsset(absolutePath);
+      const child = createAsset(absolutePath);
 
       // 给子依赖项赋值
       asset.mapping[relativePath] = child.id;
