@@ -1,1 +1,1 @@
-export const name = 'world';
+export const nickname = 'ben';
