@@ -9,6 +9,7 @@ var modules = [];
 // 创建一个资源文件
 function craeteAsset(filename) {
   var code = fs.readFileSync(filename, 'utf-8');
+  
   var dependencies = [];
   var ast = babely.parse(code, {
     sourceType: 'module'
@@ -18,7 +19,11 @@ function craeteAsset(filename) {
     // 每当遍历到import语法的时候
     ImportDeclaration: ({ node }) => {
       // 把依赖的模块加入到数组中
-      dependencies.push(node.source.value);
+      
+      var baseDirPath = path.dirname(node.source.value);
+      console.log('1111111:',baseDirPath);
+      var reltatePath = path.join( baseDirPath+'/',node.source.value);
+      dependencies.push(reltatePath);
     }
   });
 
@@ -26,10 +31,16 @@ function craeteAsset(filename) {
     presets: ['@babel/preset-env']
   });
 
+  // 将code包裹起来
+
+  var codeWrapper = `function(require,module,module.exports){
+    ${result.code}
+  }`;
+
   var module = {
     filename: filename,
     dependencies,
-    code: result.code
+    code: codeWrapper
   };
   return module;
 }
@@ -43,7 +54,6 @@ function createGraph(entry) {
   var baseDirPath = path.dirname(mainAsset.filename);
   mainAsset.dependencies.forEach(filename => {
     var realPath = path.join(baseDirPath, filename);
-    console.log(realPath);
     createGraph(realPath);
   });
 }
@@ -68,11 +78,11 @@ function bundle(graph) {
   }
   var text;
   graph.forEach(item=>{
-    text+=item.code();
+    
   });
   return text;
 }
 
-createGraph('./example/entry.js');
+createGraph('example/entry.js');
 
-// console.log(modules);
+console.log(modules);
