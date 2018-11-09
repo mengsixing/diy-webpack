@@ -3,27 +3,21 @@ var fs = require('fs');
 var babely = require('@babel/parser');
 var walker = require('@babel/traverse').default;
 const babel = require('@babel/core');
-
-var modules = [];
+var id = 0;
 
 // 创建一个资源文件
 function craeteAsset(filename) {
   var code = fs.readFileSync(filename, 'utf-8');
-  
   var dependencies = [];
   var ast = babely.parse(code, {
     sourceType: 'module'
   });
-  //   把依赖的文件写入进来
+  // 把依赖的文件写入进来
   walker(ast, {
     // 每当遍历到import语法的时候
     ImportDeclaration: ({ node }) => {
       // 把依赖的模块加入到数组中
-      
-      var baseDirPath = path.dirname(node.source.value);
-      console.log('1111111:',baseDirPath);
-      var reltatePath = path.join( baseDirPath+'/',node.source.value);
-      dependencies.push(reltatePath);
+      dependencies.push(node.source.value);
     }
   });
 
@@ -31,16 +25,11 @@ function craeteAsset(filename) {
     presets: ['@babel/preset-env']
   });
 
-  // 将code包裹起来
-
-  var codeWrapper = `function(require,module,module.exports){
-    ${result.code}
-  }`;
-
   var module = {
+    id: id++,
     filename: filename,
     dependencies,
-    code: codeWrapper
+    code: result.code
   };
   return module;
 }
@@ -48,41 +37,60 @@ function craeteAsset(filename) {
 // 深度遍历
 function createGraph(entry) {
   var mainAsset = craeteAsset(entry);
-  modules.push(mainAsset);
-//   console.log(mainAsset.filename);
-  // 获取入口文件的文件件名称
-  var baseDirPath = path.dirname(mainAsset.filename);
-  mainAsset.dependencies.forEach(filename => {
-    var realPath = path.join(baseDirPath, filename);
-    createGraph(realPath);
-  });
+  var queue = [mainAsset];
+
+  for (let asset of queue) {
+    var baseDirPath = path.dirname(asset.filename);
+    asset.mapping = {};
+    asset.dependencies.forEach(filename => {
+      var realPath = path.join(baseDirPath, filename);
+      var childAsset = craeteAsset(realPath);
+      // 给子依赖项赋值
+      asset.mapping[filename] = childAsset.id;
+      queue.push(childAsset);
+    });
+  }
+  return queue;
 }
 
 function bundle(graph) {
-    console.log(graph);
-  function require(moduleId) {
-    var module =  {
-      i: moduleId,
-      l: false,
-      exports: {}
-    };
-    // Execute the module function
-    modules[moduleId].call(
-      module.exports,
-      module,
-      module.exports,
-      __webpack_require__
-    );
-
-    return module.exports;
-  }
-  var text;
-  graph.forEach(item=>{
-    
+  var modules = `{`;
+  // 拼接modules字符串
+  graph.forEach((item, index) => {
+    modules += `
+      ${index}:{
+        fn:function(require,module,exports){
+          ${item.code}
+        },
+        mapping:${JSON.stringify(item.mapping)}
+      },
+    `;
   });
-  return text;
+
+  modules += '}';
+
+  var result = `
+  (function(graph){
+    var module = {exports:{}};
+    function require(id){
+      var {fn,mapping} = graph[id];
+      function localRequire(name){
+        // 处理依赖映射，把依赖的文件名，转换成对应的对象索引
+        return require(mapping[name]);
+      }
+      // 运行asset代码
+      fn(localRequire,module,module.exports);
+      return module.exports;
+    }
+    // 运行入口文件
+    return require(0);
+  })(${modules})
+  `;
+  return result;
 }
 
-createGraph('example/entry.js');
+var graph = createGraph('./example/entry.js');
 
-console.log(modules);
+var result = bundle(graph);
+
+console.log(result);
