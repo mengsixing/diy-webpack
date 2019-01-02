@@ -1,5 +1,7 @@
 # diy-webpack
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/yhlben/diy-webpack.svg)](https://greenkeeper.io/)
+
 手写一个 webpack 解析器。
 
 ## Get Startd
